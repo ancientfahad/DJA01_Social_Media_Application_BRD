@@ -1,4 +1,3 @@
-<!-- templates/core/home.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -21,7 +20,7 @@
                         </div>
                     </div>
                     {% if user.is_authenticated %}
-                        <button class="btn btn-create-post w-100 mt-3" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                        <button class="btn btn-custom-primary w-100 mt-3" data-bs-toggle="modal" data-bs-target="#createPostModal">
                             <i class="fas fa-plus-circle me-2"></i>Create Post
                         </button>
                     {% endif %}
@@ -30,10 +29,10 @@
         </div>
 
         <!-- Main Content -->
-        <div class="col-lg-6 col-md-8 mx-auto">
+        <div class="col-lg-6">
             <div class="posts-container">
                 {% for post in posts %}
-                    <div class="post-card">
+                    <div class="post-card fade-in">
                         <div class="post-header">
                             <div class="user-info">
                                 <img src="{{ post.user.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
@@ -90,38 +89,81 @@
                                 </button>
                             </div>
                         </div>
-
-                        <div class="comments-section" id="comments-{{ post.id }}">
-                            <!-- Comments will be loaded dynamically -->
-                        </div>
                     </div>
                 {% empty %}
                     <div class="empty-state">
                         <i class="fas fa-newspaper fa-3x mb-3"></i>
-                        <h3>No Posts Yet</h3>
-                        <p>Be the first one to share something interesting!</p>
+                        <h3>No Posts Found</h3>
+                        <p>Try adjusting your filters or be the first to share something!</p>
                         {% if user.is_authenticated %}
-                            <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                            <button class="btn btn-custom-primary mt-3" data-bs-toggle="modal" data-bs-target="#createPostModal">
                                 Create First Post
                             </button>
                         {% endif %}
                     </div>
                 {% endfor %}
-            </div>
 
-            <!-- Load More Button -->
-            {% if posts.has_next %}
-                <div class="text-center mt-4">
-                    <button class="btn btn-load-more" id="loadMoreBtn" data-page="{{ posts.next_page_number }}">
-                        Load More
-                        <i class="fas fa-spinner fa-spin d-none"></i>
-                    </button>
-                </div>
-            {% endif %}
+                <!-- Pagination -->
+                {% if posts.has_next %}
+                    <div class="text-center mt-4">
+                        <a href="?page={{ posts.next_page_number }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if media_filter %}&media={{ media_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                           class="btn btn-load-more" id="loadMoreBtn">
+                            Load More
+                            <i class="fas fa-spinner fa-spin d-none"></i>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Right Sidebar -->
         <div class="col-lg-3 d-none d-lg-block">
+            <!-- Filter Card -->
+            <div class="card sidebar-card mb-4">
+                <div class="card-body">
+                    <h5 class="sidebar-title">Filter Posts</h5>
+                    <form method="GET" action="" class="mt-3">
+                        <div class="form-group">
+                            <label class="form-label">Sort By</label>
+                            <select name="date" class="form-control">
+                                <option value="latest" {% if date_filter == 'latest' %}selected{% endif %}>Latest First</option>
+                                <option value="oldest" {% if date_filter == 'oldest' %}selected{% endif %}>Oldest First</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Media Type</label>
+                            <select name="media" class="form-control">
+                                <option value="all" {% if media_filter == 'all' %}selected{% endif %}>All Posts</option>
+                                <option value="text" {% if media_filter == 'text' %}selected{% endif %}>Text Only</option>
+                                <option value="images" {% if media_filter == 'images' %}selected{% endif %}>With Images</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Filter by User</label>
+                            <input type="text" name="user" class="form-control" value="{{ user_filter }}" 
+                                   placeholder="Enter username">
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label class="form-label">Search Posts</label>
+                            <input type="text" name="q" class="form-control" value="{{ search_query }}" 
+                                   placeholder="Search in posts...">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-custom-primary w-100">
+                            Apply Filters
+                        </button>
+                        
+                        {% if date_filter or media_filter or user_filter or search_query %}
+                            <a href="?" class="btn btn-link w-100 mt-2">Clear Filters</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Trending Topics Card -->
             <div class="card sidebar-card">
                 <div class="card-body">
                     <h5 class="sidebar-title">Trending Topics</h5>

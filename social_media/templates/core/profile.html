@@ -99,15 +99,72 @@
             {% empty %}
                 <div class="empty-state">
                     <i class="fas fa-newspaper fa-3x mb-3"></i>
-                    <h3>No Posts Yet</h3>
-                    <p>Share your first post with your followers!</p>
+                    <h3>No Posts Found</h3>
+                    <p>Try adjusting your filters or share your first post!</p>
                 </div>
             {% endfor %}
+
+            <!-- Pagination -->
+            {% if posts.has_next %}
+                <div class="text-center mt-4">
+                    <a href="?page={{ posts.next_page_number }}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if media_filter %}&media={{ media_filter }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="btn btn-load-more">
+                        Load More
+                        <i class="fas fa-spinner fa-spin d-none"></i>
+                    </a>
+                </div>
+            {% endif %}
         </div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar (Right Column) -->
         <div class="col-md-4">
-            <div class="sidebar-card">
+            <!-- Filter Card -->
+            <div class="card sidebar-card mb-4">
+                <div class="card-body">
+                    <h5 class="sidebar-title">Filter Posts</h5>
+                    <form method="GET" action="" class="mt-3">
+                        <div class="form-group">
+                            <label class="form-label">Sort By</label>
+                            <select name="date" class="form-control">
+                                <option value="latest" {% if date_filter == 'latest' %}selected{% endif %}>Latest First</option>
+                                <option value="oldest" {% if date_filter == 'oldest' %}selected{% endif %}>Oldest First</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Media Type</label>
+                            <select name="media" class="form-control">
+                                <option value="all" {% if media_filter == 'all' %}selected{% endif %}>All Posts</option>
+                                <option value="text" {% if media_filter == 'text' %}selected{% endif %}>Text Only</option>
+                                <option value="images" {% if media_filter == 'images' %}selected{% endif %}>With Images</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Filter by User</label>
+                            <input type="text" name="user" class="form-control" value="{{ user_filter }}" 
+                                   placeholder="Enter username">
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label class="form-label">Search Posts</label>
+                            <input type="text" name="q" class="form-control" value="{{ search_query }}" 
+                                   placeholder="Search in posts...">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-custom-primary w-100">
+                            Apply Filters
+                        </button>
+                        
+                        {% if date_filter or media_filter or user_filter or search_query %}
+                            <a href="?" class="btn btn-link w-100 mt-2">Clear Filters</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Profile Stats -->
+            <div class="card sidebar-card">
                 <div class="card-body">
                     <h5 class="sidebar-title">Profile Stats</h5>
                     <div class="quick-stats">
