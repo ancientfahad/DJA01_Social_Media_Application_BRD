@@ -8,6 +8,3 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ('content', 'user__username')
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('-created_at',)
-
-# Alternative simpler registration:
-# admin.site.register(Post)
