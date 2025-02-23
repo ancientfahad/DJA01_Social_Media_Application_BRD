@@ -1,0 +1,27 @@
+<!-- templates/core/post_form.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <h2 class="mb-4">{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="alert alert-danger">
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">
+                {% if form.instance.pk %}Update{% else %}Create{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
