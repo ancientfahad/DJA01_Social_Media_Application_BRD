@@ -1,28 +1,176 @@
 <!-- templates/core/home.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <h2 class="mb-4">Recent Posts</h2>
-        {% for post in posts %}
-            <div class="card mb-4">
+<div class="home-container">
+    <div class="row">
+        <!-- Left Sidebar -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="card sidebar-card">
                 <div class="card-body">
-                    <h5 class="card-title">{{ post.user.username }}</h5>
-                    <p class="card-text">{{ post.content }}</p>
-                    {% if post.image %}
-                        <img src="{{ post.image.url }}" class="img-fluid mb-3" alt="Post image">
-                    {% endif %}
-                    <p class="text-muted">Posted on {{ post.created_at|date:"F d, Y" }}</p>
-                    {% if user == post.user %}
-                        <a href="{% url 'post_update' post.pk %}" class="btn btn-sm btn-primary">Edit</a>
-                        <a href="{% url 'post_delete' post.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    <h5 class="sidebar-title">Welcome{% if user.is_authenticated %}, {{ user.username }}{% endif %}!</h5>
+                    <div class="quick-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span>{{ user.followers.count|default:"0" }} Followers</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-newspaper"></i>
+                            <span>{{ user.posts.count|default:"0" }} Posts</span>
+                        </div>
+                    </div>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-create-post w-100 mt-3" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                            <i class="fas fa-plus-circle me-2"></i>Create Post
+                        </button>
                     {% endif %}
                 </div>
             </div>
-        {% empty %}
-            <p>No posts yet.</p>
-        {% endfor %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-6 col-md-8 mx-auto">
+            <div class="posts-container">
+                {% for post in posts %}
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="user-info">
+                                <img src="{{ post.user.profile.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                                     class="user-avatar" alt="Profile picture">
+                                <div class="user-details">
+                                    <h5 class="username">{{ post.user.username }}</h5>
+                                    <span class="post-time">{{ post.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                            {% if user == post.user %}
+                                <div class="post-actions dropdown">
+                                    <button class="btn btn-link" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'post_update' post.pk %}">
+                                                <i class="fas fa-edit me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'post_delete' post.pk %}">
+                                                <i class="fas fa-trash-alt me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="post-content">
+                            <p>{{ post.content }}</p>
+                            {% if post.image %}
+                                <div class="post-image">
+                                    <img src="{{ post.image.url }}" class="img-fluid rounded" alt="Post image"
+                                         onclick="openImageModal(this.src)">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="post-footer">
+                            <div class="interaction-buttons">
+                                <button class="btn btn-like {% if user in post.likes.all %}active{% endif %}"
+                                        data-post-id="{{ post.id }}">
+                                    <i class="fas fa-heart"></i>
+                                    <span class="likes-count">{{ post.likes.count }}</span>
+                                </button>
+                                <button class="btn btn-comment" onclick="focusComment({{ post.id }})">
+                                    <i class="fas fa-comment"></i>
+                                    <span class="comments-count">{{ post.comments.count }}</span>
+                                </button>
+                                <button class="btn btn-share" onclick="sharePost({{ post.id }})">
+                                    <i class="fas fa-share"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="comments-section" id="comments-{{ post.id }}">
+                            <!-- Comments will be loaded dynamically -->
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <i class="fas fa-newspaper fa-3x mb-3"></i>
+                        <h3>No Posts Yet</h3>
+                        <p>Be the first one to share something interesting!</p>
+                        {% if user.is_authenticated %}
+                            <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                                Create First Post
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Load More Button -->
+            {% if posts.has_next %}
+                <div class="text-center mt-4">
+                    <button class="btn btn-load-more" id="loadMoreBtn" data-page="{{ posts.next_page_number }}">
+                        Load More
+                        <i class="fas fa-spinner fa-spin d-none"></i>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="card sidebar-card">
+                <div class="card-body">
+                    <h5 class="sidebar-title">Trending Topics</h5>
+                    <div class="trending-tags">
+                        <a href="#" class="tag">#photography</a>
+                        <a href="#" class="tag">#travel</a>
+                        <a href="#" class="tag">#food</a>
+                        <a href="#" class="tag">#art</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body p-0">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal"></button>
+                <img src="" class="img-fluid" id="modalImage">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Post Modal -->
+<div class="modal fade" id="createPostModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'post_create' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="4" placeholder="What's on your mind?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Add Image</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Post</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
